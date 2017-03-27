@@ -16,14 +16,6 @@ This layer depends on:
   branch: jethro
 
 
-Patches
-=======
-
-Please submit any patches against this BSP to the maintainer:
-
-Maintainer: Adam Lussier <adam.lussier@timesys.com>
-
-
 Table of Contents
 =================
 
@@ -34,37 +26,45 @@ Table of Contents
 I. Building the meta-lantronix BSP layer
 ========================================
 
-This BSP is distributed as tar file containing the full Yocto build tree.
-Here is the directory structure:
-
-  yocto/
-    build/
-      conf/
-        bblayers.conf
-        local.conf
-    sources/
-      meta-lantronix/
-      meta-openembedded/
-      poky/
-
-Note that the meta-lantronix layer, as well as the layers contained in
-meta-openembedded and poky, are listed in yocto/build/conf/bblayers.conf.
-Also, the MACHINE is set to "pw2050" in yocto/build/conf/local.conf.
-
-First, make sure you have the Yocto host requirements installed.  The command
+First, make sure you have the Yocto host requirements installed. The command 
 to install the dependencies is listed for all supported host distributions here:
+
 http://www.yoctoproject.org/docs/2.0/yocto-project-qs/yocto-project-qs.html#packages
 
-To build the BSP, first cd to the yocto/ directory, then run:
+Create a directory for your project. For this example we will use pw2050-sdk:
+$ mkdir pw2050-sdk/sources
+$ cd pw2050-sdk/sources
+$ git clone -b jethro git://git.yoctoproject.org/poky.git
+$ git clone -b jethro git://git.openembedded.org/meta-openembedded
+$ git clone -b jethro git://github.com/Lantronix/meta-lantronix
 
+
+In the pw2050-sdk directory, execute this command:
 $ source sources/poky/oe-init-build-env build
 
-This will set up the environment and move you to the build directory.  Now, run:
+This will create the build directory with the appropriate files. Edit
+build/conf/bblayers.conf to add the following lines after the last BBLAYER line:
+
+  ${BSPDIR}/sources/meta-lantronix \
+  ${BSPDIR}/sources/meta-openembedded/meta-oe \
+  ${BSPDIR}/sources/meta-openembedded/meta-filesystems \
+  ${BSPDIR}/sources/meta-openembedded/meta-networking \
+  ${BSPDIR}/sources/meta-openembedded/meta-python \
+  ${BSPDIR}/sources/meta-openembedded/meta-webserver \
+
+And this line to define your BSPDIR:
+BSPDIR := "${@os.path.abspath(os.path.dirname(d.getVar('FILE', True)) + '/../..')}"
+
+Edit build/conf/local.conf and change the definition of MACHINE from 
+"qemux86" to "pw2050"
+
+
+Back in the pw2050-sdk/build directory, run:
 
 $ bitbake ltrx-image
 
 When the build completes, the final image will be located at:
-yocto/build/tmp/deploy/images/pw2050/premierwave_gg2050_ltrx-image_1.0.0.1R15.rom
+pw2050-sdk/build/tmp/deploy/images/pw2050/premierwave_gg2050_ltrx-image_1.0.0.1R15.rom
 
 This image can be flashed using Lantronix DeviceInstaller on Windows.
 
